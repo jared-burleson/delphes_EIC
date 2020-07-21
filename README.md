@@ -1,3 +1,9 @@
+# Quick Note
+
+delphes_EIC is a project for using the fast detector-response simulator DELPHES to model potential EIC studies. The main github for the project is located at https://github.com/miguelignacio/delphes_EIC and https://github.com/stephensekula/delphes_EIC/.
+
+My work is specifically looking at subjet studies, particular with the exist methods inside of DELPHES and perhaps applying to a multivariate algorithm in the future. I will use this repository to post code updates/changes to both DELPHES files and my own additions for gathering data. In addition, I have added a folder where I will upload my jupyter notebook python scripts that cover the data analysis portion of my work.
+
 # delphes_EIC
 
 Install Delphes3 following:
