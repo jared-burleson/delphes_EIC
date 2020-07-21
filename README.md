@@ -61,6 +61,21 @@ for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass en
    * Clone the repository locally,
    * Follow the instructions to run the example and generate a ROOT file.
 
+## Bug Fixing
+
+There are occasionally bugs or other easily fixable issues that we have come across in our work that if not addressed can cause issues when using DELPHES.
+
+The first is the make the following adjustment to the ```BeamRemnants.cc``` file inside of ```/pythiaXXXX/src/```. Add the following loop after line 978:
+
+```if (iLepScat > (event.size()-1)) { return false; }```
+
+The issue is that occasionally pythia produces a messed-up beam remnant and this small addition will require pythia to try again rather than causing a run-time error in the simulation generation.
+
+The second has to do with the Jet Trimming Algorithm in DELPHES. DELPHES has FastJet implemented and it calls FastJet and performs a trimming analysis in ```/Delphes-X.X.X/modules/FastJetFinder.cc```. However, based on my studies I found that the trimmed subjets only ever contain a single constituent regardless of radius or pT cuts. Upon investigation, I determined that the following line of code is extraneous and should be commented out or removed from the file in order to allow for the correct trimming algorithm to be employed. This is located around line 490 in the fComputeTrimming section:
+
+```fastjet::PseudoJet trimmed_jet = join(trimmed_jet.constituents());```
+
+Once this line is commented out, the trimmed_jet can be analyzed for pieces and have substructure that contains clustering of more than one individual constituent.
 
 ## Running Monte Carlo Production
 
@@ -79,6 +94,7 @@ SLURM_ARRAY_TASK_ID=0 ./run_study.py --template delphes_card_EIC.tcl --commands 
 
 Beam energy recommended benchmarking points are (the order is hadron on lepton):
 
+* 275 on 10 GeV (what we are currently using) 
 * 275 on 18 GeV
 * 100 on 10 GeV
 * 100 on 5 GeV
@@ -107,6 +123,7 @@ This runs on a single Delphes ROOT file and produces a new output file, test.roo
 * ElectronPIDModule: same as kaon PID, but for electrons
 * MuonPIDModule: same as kaon PID, but for muons
 * TaggingModule: Uses the lists of kaon, muon, and electron candidates provided by the above modules, as well as an implementation of signed-high-impact-parameter track finding, to tag jets.
+* SubJetModule: work in progress, is capable of reporting important kinematics for analysis on the subjets for different algorithm/method types and the jets that they are constructed into.
 
 The output file contains one entry per jet studied with a few basic jet variables. These can be processed using the scripts in ```SimpleAnalysis/scripts``` to make some plots.
 
