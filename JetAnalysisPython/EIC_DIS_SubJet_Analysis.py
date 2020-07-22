@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
+# This file is a generic file for studying SubJets from our EIC_DIS Simulations using different methods (such as Trimming or Pruning)
+# We use the library class "uproot" to import the ROOT file and turn it into a pandas dataframe 
+# We can then perform functions/computations, cuts, and plotting on the data
 
 import uproot
 import numpy as np
@@ -13,9 +11,7 @@ from matplotlib.ticker import MultipleLocator
 import warnings
 warnings.filterwarnings('ignore')
 
-
-# In[80]:
-
+# Functions used for plotting (error calculation and plotting) and generating pT/mass 
 
 def error_calculate(data_array):
     raw_error = np.sqrt(data_array)
@@ -38,7 +34,6 @@ def error_bar_hist_plotting(data, bin_count, range_min, range_max, xlabel, ylabe
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.grid()
     plt.minorticks_on()
 
     return 0
@@ -78,133 +73,63 @@ def PrunedM(row):
     return m_value
 
 
-# In[93]:
+# Importing ROOT file and making dataframe with Jet variables
 
+file_data = uproot.open("INPUT_FILE.root")["Delphes"]
+jet_data = file_data.pandas.df(['Jet.PT','Jet.Eta','Jet.Phi','Jet.Mass','Jet.Flavor'], flatten=True)
+jet_data.reset_index(inplace=True, drop=True)
 
-jet_data_CCDIS = file_data_CCDIS.pandas.df(['Jet.PT','Jet.Eta','Jet.Phi','Jet.Mass','Jet.Flavor'], flatten=True)
+# Trimmed Jet Study
 
+jet_data_trimmed = file_data.pandas.df(['Jet.TrimmedP4[5]'], flatten=True)
+jet_data_trimmed.reset_index(inplace=True, drop=True)
+jet_data_trimmed["Jet.TrimmedP4[5].pT"] = jet_data_trimmed.apply(TrimmedPT, axis=1)
+jet_data_trimmed["Jet.TrimmedP4[5].M"] = jet_data_trimmed.apply(TrimmedM, axis=1)
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[42]:
-
-
-error_bar_hist_plotting(jet_data_NCDIS['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:blue')
-error_bar_hist_plotting(jet_data_CCDIS['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:red')
-plt.legend(['NC DIS','CC DIS'])
-plt.show()
-
-error_bar_hist_plotting(jet_data_NCDIS[jet_data_NCDIS['Jet.Flavor'] == 4]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Charm Jet pT','tab:orange')
-error_bar_hist_plotting(jet_data_CCDIS[jet_data_CCDIS['Jet.Flavor'] == 4]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Charm Jet pT','tab:green')
-plt.legend(['NC DIS','CC DIS'])
-plt.show()
-
-error_bar_hist_plotting(jet_data_NCDIS['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:blue')
-error_bar_hist_plotting(jet_data_CCDIS['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:red')
-error_bar_hist_plotting(jet_data_NCDIS[jet_data_NCDIS['Jet.Flavor'] == 4]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Charm Jet pT','tab:orange')
-error_bar_hist_plotting(jet_data_CCDIS[jet_data_CCDIS['Jet.Flavor'] == 4]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Charm Jet pT','tab:green')
-plt.legend(['All Jets (NC)','All Jets (CC)','Charm Jets (NC)','Charm Jets (CC)'])
-plt.show()
-
-error_bar_hist_plotting(jet_data_NCDIS[(jet_data_NCDIS['Jet.Flavor'] < 4) | (jet_data_NCDIS['Jet.Flavor'] == 21)]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:blue')
-error_bar_hist_plotting(jet_data_CCDIS[(jet_data_CCDIS['Jet.Flavor'] < 4) | (jet_data_CCDIS['Jet.Flavor'] == 21)]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:red')
-error_bar_hist_plotting(jet_data_NCDIS[jet_data_NCDIS['Jet.Flavor'] == 4]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:orange')
-error_bar_hist_plotting(jet_data_CCDIS[jet_data_CCDIS['Jet.Flavor'] == 4]['Jet.PT'],45,5,50,'Jet pT (GeV)','Frequency','Jet pT','tab:green')
-plt.legend(['Light Jets (NC)','Light Jets (CC)','Charm Jets (NC)','Charm Jets (CC)'])
-plt.savefig('Graphics/Charm_Light_Jet_pT_NCCC_Comparison.jpg',dpi=300)
-plt.show()
-
-
-# In[ ]:
-
-
-file_data_CCDIS = uproot.open("D:\College/JetStudy/EICStudy/EIC_CCDIS_SubJet_TrimmedStudy_output-3.root")["Delphes"]
-
-
-# ### Trimmed Jet Study
-
-# In[78]:
-
-
-jet_data_CCDIS_trimmed = file_data_CCDIS.pandas.df(['Jet.TrimmedP4[5]'], flatten=True)
-jet_data_CCDIS_trimmed.reset_index(inplace=True, drop=True)
-jet_data_CCDIS_trimmed["Jet.TrimmedP4[5].pT"] = jet_data_CCDIS_trimmed.apply(TrimmedPT, axis=1)
-jet_data_CCDIS_trimmed["Jet.TrimmedP4[5].M"] = jet_data_CCDIS_trimmed.apply(TrimmedM, axis=1)
-
-drop_indexes_CCDIS_trimmed = []
-single_drop_indexes_CCDIS_trimmed = []
-for i in range(0,len(jet_data_CCDIS_trimmed)):
+drop_indexes_trimmed = []
+single_drop_indexes_trimmed = []
+for i in range(0,len(jet_data_trimmed)):
     if(i % 5 == 0):
-        drop_indexes_CCDIS_trimmed.append(i)
-    if(jet_data_CCDIS_trimmed['Jet.TrimmedP4[5].fX'][i] == 0.0 and jet_data_CCDIS_trimmed['Jet.TrimmedP4[5].fY'][i] == 0.0):
-        drop_indexes_CCDIS_trimmed.append(i)
+        drop_indexes_trimmed.append(i)
+    if(jet_data_trimmed['Jet.TrimmedP4[5].fX'][i] == 0.0 and jet_data_trimmed['Jet.TrimmedP4[5].fY'][i] == 0.0):
+        drop_indexes_trimmed.append(i)
     if(i % 5 != 0):
-        single_drop_indexes_CCDIS_trimmed.append(i)
+        single_drop_indexes_trimmed.append(i)
         
-subjet_data_CCDIS_trimmed = jet_data_CCDIS_trimmed.drop(drop_indexes_CCDIS_trimmed)
-subjet_data_CCDIS_trimmed.reset_index(inplace=True, drop=True)
+subjet_data_trimmed = jet_data_trimmed.drop(drop_indexes_trimmed)
+subjet_data_trimmed.reset_index(inplace=True, drop=True)
 
-single_jet_data_CCDIS_trimmed = jet_data_CCDIS_trimmed.drop(single_drop_indexes_CCDIS_trimmed)
-single_jet_data_CCDIS_trimmed.reset_index(inplace=True, drop=True)
+single_jet_data_trimmed = jet_data_trimmed.drop(single_drop_indexes_trimmed)
+single_jet_data_trimmed.reset_index(inplace=True, drop=True)
 
+# Pruned Jet Study
 
-# In[ ]:
+jet_data_Pruned = file_data.pandas.df(['Jet.PrunedP4[5]'], flatten=True)
+jet_data_Pruned.reset_index(inplace=True, drop=True)
 
+jet_data_Pruned["Jet.PrunedP4[5].pT"] = jet_data_Pruned.apply(PrunedPT, axis=1)
+jet_data_Pruned["Jet.PrunedP4[5].M"] = jet_data_Pruned.apply(PrunedM, axis=1)
 
+jet_data_Pruned
 
-
-
-# ### Pruned Jet Study
-
-# In[86]:
-
-
-jet_data_CCDIS_Pruned = file_data_CCDIS.pandas.df(['Jet.PrunedP4[5]'], flatten=True)
-jet_data_CCDIS_Pruned.reset_index(inplace=True, drop=True)
-
-jet_data_CCDIS_Pruned["Jet.PrunedP4[5].pT"] = jet_data_CCDIS_Pruned.apply(PrunedPT, axis=1)
-jet_data_CCDIS_Pruned["Jet.PrunedP4[5].M"] = jet_data_CCDIS_Pruned.apply(PrunedM, axis=1)
-
-jet_data_CCDIS_Pruned
-
-single_drop_indexes_CCDIS_Pruned = []
-drop_indexes_CCDIS_Pruned = []
-for i in range(0,len(jet_data_CCDIS_Pruned)):
+single_drop_indexes_Pruned = []
+drop_indexes_Pruned = []
+for i in range(0,len(jet_data_Pruned)):
     if(i % 5 == 0):
-        drop_indexes_CCDIS_Pruned.append(i)
-    if(jet_data_CCDIS_Pruned['Jet.PrunedP4[5].fX'][i] == 0.0 and jet_data_CCDIS_Pruned['Jet.PrunedP4[5].fY'][i] == 0.0):
-        drop_indexes_CCDIS_Pruned.append(i)
-        single_drop_indexes_CCDIS_Pruned.append(i)
+        drop_indexes_Pruned.append(i)
+    if(jet_data_Pruned['Jet.PrunedP4[5].fX'][i] == 0.0 and jet_data_Pruned['Jet.PrunedP4[5].fY'][i] == 0.0):
+        drop_indexes_Pruned.append(i)
+        single_drop_indexes_Pruned.append(i)
     if(i % 5 != 0):
-        single_drop_indexes_CCDIS_Pruned.append(i)
+        single_drop_indexes_Pruned.append(i)
         
-subjet_data_CCDIS_Pruned = jet_data_CCDIS_Pruned.drop(drop_indexes_CCDIS_Pruned)
-subjet_data_CCDIS_Pruned.reset_index(inplace=True, drop=True)
+subjet_data_Pruned = jet_data_Pruned.drop(drop_indexes_Pruned)
+subjet_data_Pruned.reset_index(inplace=True, drop=True)
 
-single_jet_data_CCDIS_Pruned = jet_data_CCDIS_Pruned.drop(single_drop_indexes_CCDIS_Pruned)
-single_jet_data_CCDIS_Pruned.reset_index(inplace=True, drop=True)
+single_jet_data_Pruned = jet_data_Pruned.drop(single_drop_indexes_Pruned)
+single_jet_data_Pruned.reset_index(inplace=True, drop=True)
 
-
-# In[ ]:
-
-
-
-
-
-# ### Plotting (Individual and Comparison)
-
-# In[103]:
-
+# Plotting (Comparison)
 
 # Combined Jet pT Plots
 error_bar_hist_plotting(jet_data_CCDIS['Jet.PT'], 45, 5, 50, 'Jet pT (GeV)', 'Frequency', 'DelphesPythia8 EIC Event: Jet pT', 'tab:blue')
@@ -221,54 +146,4 @@ plt.xlim(0,10)
 plt.legend(['Jet','TrimmedJet','Pruned'])
 plt.show()
 
-# Trimmed Jet Eta Plots
-
-# Trimmed Jet Phi Plots
-
-# Trimmed Jet Mass Plots
-
-# Trimmed SubJet pT Plots
-
-# Trimmed SubJet Eta Plots
-
-# Trimmed SubJet Phi Plots
-
-# Trimmed SubJet Mass Plots
-# error_bar_hist_plotting(subjet_data_CCDIS_trimmed['Jet.TrimmedP4[5].M'], 40, 0, 2, 'SubJet M (GeV)', 'Frequency', 'DelphesPythia8 EIC Event: Trimmed SubJet M', 'tab:blue')
-# plt.show()
-# error_bar_hist_plotting(subjet_data_CCDIS_trimmed['Jet.TrimmedP4[5].M'], 25, 0, .5, 'SubJet M (GeV)', 'Frequency', 'DelphesPythia8 EIC Event: Trimmed SubJet M', 'tab:blue')
-# plt.show()
-
-# Pruned Jet pT Plots
-
-# Pruned Jet Eta Plots
-
-# Pruned Jet Phi Plots
-
-# Pruned Jet Mass Plots
-
-# Pruned SubJet pT Plots
-
-# Pruned SubJet Eta Plots
-
-# Pruned SubJet Phi Plots
-
-# Pruned SubJet Mass Plots
-# error_bar_hist_plotting(subjet_data_CCDIS_Pruned['Jet.PrunedP4[5].M'], 40, 0, 2, 'SubJet M (GeV)', 'Frequency', 'DelphesPythia8 EIC Event: Pruned SubJet M', 'tab:blue')
-# plt.show()
-# error_bar_hist_plotting(subjet_data_CCDIS_Pruned['Jet.PrunedP4[5].M'], 25, 0, .5, 'SubJet M (GeV)', 'Frequency', 'DelphesPythia8 EIC Event: Pruned SubJet M', 'tab:blue')
-# plt.show()
-
-
-# In[104]:
-
-
-error_bar_hist_plotting(single_jet_data_CCDIS_trimmed['Jet.TrimmedP4[5].M'], 51, 0, 10.2, 'Jet Mass (GeV)', 'Frequency', 'DelphesPythia8 EIC Event: Jet Mass', 'tab:orange')
-plt.show()
-
-
-# In[ ]:
-
-
-
-
+# More plots can be added to look at individual subjets or such, but the code is omitted because it is very simple to reproduce
