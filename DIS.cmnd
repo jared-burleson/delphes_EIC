@@ -25,8 +25,8 @@ Beams:frameType = 2
 
 ! 4) Settings for the hard-process generation.
 
-WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS, probably best for strange study
-#WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS, probably best for instrinsic charm study, maintain leptop flavor, if charm quark comes out, Z must have hit charm quark inside proton
+WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS, probably best for strange jet study
+#WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS, probably best for charm jet study, maintain leptop flavor, if charm quark comes out, Z must have hit charm quark inside proton
                                     ! look at charm jets coming out for neutral current process
                                     ! can Tim generate pdf to vary instrinsic charm production to make sure it is working
 PhaseSpace:Q2Min = 100
