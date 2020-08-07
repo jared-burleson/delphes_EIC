@@ -77,6 +77,8 @@ The second has to do with the Jet Trimming Algorithm in DELPHES. DELPHES has Fas
 
 Once this line is commented out, the trimmed_jet can be analyzed for pieces and have substructure that contains clustering of more than one individual constituent.
 
+UPDATE: On 07/22/2020 DELPHES accepted the pull request addressing the issue with FastJetFinder.cc and the trimming section. If downloading DELPHES straight from the github after the date, the above issue should be fixed.
+
 ## Running Monte Carlo Production
 
 The following command line will run these options:
